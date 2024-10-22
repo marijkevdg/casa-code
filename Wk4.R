@@ -6,23 +6,30 @@ library(readr)
 library(sf)
 library(terra)
 library(tidyverse)
+library(countrycode)
+library(janitor)
 
-#Load Global Gender Inequality Data
-global_index_data <- read_csv('HDR23-24_Composite_indices_complete_time_series.csv')
+#Load and clean Global Index Data
+global_index_data <- read_csv('data/HDR23-24_Composite_indices_complete_time_series.csv')
 
-#need 2010 and 2019 gii index
-#Creates new datafram with gii_2010 data
+#Isolate Global Inequality Index data
+#Create new dataframe with country, gii_2010 and gii_2019 data
 global_inequality <- as.data.frame(global_index_data$country)
-global_inequality <- global_inequality %>% mutate(global_inequality$gii_2010)
-#Adds gii_2019 data
+global_inequality <- global_inequality %>% mutate(global_index_data$gii_2010)
 global_inequality <- global_inequality %>% mutate(global_index_data$gii_2019)
-names(global_inequality) <- c("Country", "index_2010", "index_2019")
-#creates column showing difference in index between 2010 and 2019
-global_inequality <- global_inequality %>% mutate(index_2019 - index_2010)
+#Create difference column 
+global_inequality <- global_inequality %>% mutate(global_index_data$gii_2019 - global_index_data$gii_2010)
 names(global_inequality) <- c("Country", "index_2010", "index_2019", "Difference")
- 
-#Load World spatial data
-url <- "/Users/marijkevandergeer/Documents/GitHub/casa-code/World_Countries_(Generalized)_9029012925078512962.geojson"
-world_data <- geojson_sf(url)
+global_inequality <- clean_names(global_inequality)
 
-#Merge
+#Load and clean World spatial data
+url <- "/Users/marijkevandergeer/Documents/GitHub/casa-code/data/World_Countries_(Generalized)_9029012925078512962.geojson"
+world_data <- geojson_sf(url)
+world_data <- clean_names(world_data)
+plot(world_data)
+
+#Merge so the World data contains an inequality difference column
+world_inequality <- merge(world_data, global_inequality, by="country")
+world_inequality <- world_inequality[-6]
+world_inequality <- world_inequality[-6]
+names(world_inequality) <- c("country", "fid", "iso", "countryaff", "aff_iso", "inequality_difference", "geometry")
