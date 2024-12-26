@@ -28,8 +28,10 @@ world_data <- geojson_sf(url)
 world_data <- clean_names(world_data)
 plot(world_data)
 
+#try not to join on string columns because things can be spelled differently
 #Merge so the World data contains an inequality difference column
 world_inequality <- merge(world_data, global_inequality, by="country")
 world_inequality <- world_inequality[-6]
 world_inequality <- world_inequality[-6]
 names(world_inequality) <- c("country", "fid", "iso", "countryaff", "aff_iso", "inequality_difference", "geometry")
+
